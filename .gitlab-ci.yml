@@ -23,23 +23,23 @@ test:
 
 build and publish package:
   stage: build-package
-  image: michalmazurek/python-poetry:alpine
+  image: michalmazurek/python-poetry:3.7
   script:
     - poetry version ${CI_COMMIT_REF_NAME}
-    - if [ -e ${PYTHON_REPOSITORY} ]; then poetry publish --build; fi; done
+    - if [ -e ${PYTHON_REPOSITORY} ]; then poetry publish --build; fi;
     - if [ ! -e ${PYTHON_REPOSITORY} ]; then poetry config repositories.external-repo ${PYTHON_REPOSITORY}; fi
-    - if [ ! -e ${PYTHON_REPOSITORY} && ! -e ${PYTHON_REPO_USER}]; then poetry publish --build -r external-repo -u ${PYTHON_REPO_USER} -p ${PYTHON_REPO_PASSWORD} -n; fi
-    - if [ ! -e ${PYTHON_REPOSITORY} && -e ${PYTHON_REPO_USER}]; then poetry publish --build -r external-repo; fi
+    - if [ ! -e ${PYTHON_REPOSITORY} ] && [ ! -e ${PYTHON_REPO_USER} ]; then poetry publish --build -r external-repo -u ${PYTHON_REPO_USER} -p ${PYTHON_REPO_PASSWORD} -n; fi
+    - if [ ! -e ${PYTHON_REPOSITORY} ] && [ -e ${PYTHON_REPO_USER} ]; then poetry publish --build -r external-repo; fi
   only:
     - tags
 
 build-docker-image:
   stage: build-docker-image
-  image: docker:stable
   script:
     - cd docker/release
-    - if [ ! -e ${PYTHON_REPOSITORY_WITH_USER} ]; then docker build --build-arg version=${CI_COMMIT_REF_NAME} --build-arg repository=$PYTHON_REPOSITORY_WITH_USER  -t registry.gitlab.com/mazurekinc/yuubin:latest -t registry.gitlab.com/mazurekinc/yuubin:${CI_COMMIT_REF_NAME} .; done
-    - if [ -e ${PYTHON_REPOSITORY_WITH_USER} ]; then docker build --build-arg version=${CI_COMMIT_REF_NAME} -t registry.gitlab.com/mazurekinc/yuubin:latest -t registry.gitlab.com/mazurekinc/yuubin:${CI_COMMIT_REF_NAME}
+    - docker login --username=${REGISTRY_USER} --password=${REGISTRY_TOKEN} registry.gitlab.com
+    - if [ ! -e ${PYTHON_REPOSITORY_WITH_USER} ]; then docker build --build-arg version=${CI_COMMIT_REF_NAME} --build-arg repository=${PYTHON_REPOSITORY_WITH_USER}  -t registry.gitlab.com/mazurekinc/yuubin:latest -t registry.gitlab.com/mazurekinc/yuubin:${CI_COMMIT_REF_NAME} .; fi
+    - if [ -e ${PYTHON_REPOSITORY_WITH_USER} ]; then docker build --build-arg version=${CI_COMMIT_REF_NAME} -t registry.gitlab.com/mazurekinc/yuubin:latest -t registry.gitlab.com/mazurekinc/yuubin:${CI_COMMIT_REF_NAME}; fi
     - docker push registry.gitlab.com/mazurekinc/yuubin:${CI_COMMIT_REF_NAME}
     - docker push registry.gitlab.com/mazurekinc/yuubin:latest
   only:
