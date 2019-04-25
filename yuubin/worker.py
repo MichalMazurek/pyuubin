@@ -36,12 +36,11 @@ async def worker(
             if log.getEffectiveLevel() == logging.DEBUG:
                 log.exception(e)
             stopped_event.set()
-        except FailedToSendMessage as e:
+        except (FailedToSendMessage, Exception) as e:
             et, ev, tb = sys.exc_info()
             await db.report_failed_mail(email, traceback=tblib.Traceback(tb).to_dict())
             log.error(f"Failed to send message: {e}")
-            if log.level == logging.DEBUG:
-                log.exception(e)
+            log.exception(e)
         finally:
             await db.ack_mail(email)
 
