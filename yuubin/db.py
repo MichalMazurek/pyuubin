@@ -121,9 +121,9 @@ class RedisDb:
 
         template_ids = await self.redis.keys(_t_id("*"))
         for redis_template_id in template_ids:
+            redis_template_id = redis_template_id.decode("utf8")
             template_preffix_length = len(_t_id(""))
             self._templates[redis_template_id[template_preffix_length:]] = (
                 await self.redis.get(redis_template_id)
             ).decode("utf8")
-
         return self._templates
