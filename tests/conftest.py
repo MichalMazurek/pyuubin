@@ -49,7 +49,7 @@ class MockedAioRedis(object):
         except ValueError:
             preffix = ""
 
-        return [key for key in self.me.keys() if key.startswith(preffix)]
+        return [key.encode("utf8") for key in self.me.keys() if key.startswith(preffix)]
 
     async def ttl(self, key):
         return self.expires[key]
