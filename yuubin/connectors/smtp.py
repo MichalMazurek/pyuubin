@@ -1,7 +1,5 @@
 import logging
-from email.mime.multipart import MIMEMultipart
 from email.message import EmailMessage
-from email.mime.text import MIMEText
 
 import html2text
 from aiosmtplib import SMTP, SMTPAuthenticationError, SMTPConnectError, SMTPRecipientsRefused, SMTPResponseException
@@ -14,7 +12,7 @@ from yuubin.templates import Templates
 log = logging.getLogger(__name__)
 
 
-async def attach_content(mail: Mail, templates: Templates, message: EmailMessage) -> MIMEMultipart:
+async def attach_content(mail: Mail, templates: Templates, message: EmailMessage) -> EmailMessage:
     """Attach content to the mul
 
     Args:
