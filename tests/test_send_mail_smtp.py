@@ -31,6 +31,14 @@ class MockSMTP:
             raise self._send_exception
         self.messages.append(message)
 
+    async def ehlo(self):
+        pass
+
+    async def auth_plain(self, user, password):
+
+        self.user = user
+        self.password = password
+
     async def connect(self, *args, **kwargs):
         """"""
         if self._connect_exception:
@@ -113,7 +121,7 @@ async def test_send(mock_smtp):
 
     assert message.get_content_type() == "multipart/alternative"
 
-    html, plain = message.get_payload()
+    plain, html = message.get_payload()
 
     html_body = html.get_payload(decode=True).decode("utf8")
     assert "<dt>message</dt><dd>test</dd>" in html_body
