@@ -1,9 +1,9 @@
 from importlib import import_module
 from typing import Awaitable, Coroutine
 
-from yuubin.models import Mail
-from yuubin.settings import MAIL_CONNECTOR
-from yuubin.templates import Templates
+from pyuubin.models import Mail
+from pyuubin.settings import MAIL_CONNECTOR
+from pyuubin.templates import Templates
 
 
 def get_connector(connector_module) -> Coroutine[Awaitable[Mail], str, str]:

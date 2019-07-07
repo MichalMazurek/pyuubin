@@ -1,7 +1,7 @@
 import html2text
 
-from yuubin.models import Mail
-from yuubin.templates import Templates
+from pyuubin.models import Mail
+from pyuubin.templates import Templates
 
 
 async def send(mail: Mail, templates: Templates) -> str:

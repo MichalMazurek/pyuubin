@@ -1,8 +1,8 @@
-import yuubin.connectors.smtp
-from yuubin.connectors.smtp import send, CannotSendMessages, FailedToSendMessage
-from yuubin.templates import Templates
-from yuubin.models import Mail
-from yuubin.settings import MAIL_FROM
+import pyuubin.connectors.smtp
+from pyuubin.connectors.smtp import send, CannotSendMessages, FailedToSendMessage
+from pyuubin.templates import Templates
+from pyuubin.models import Mail
+from pyuubin.settings import MAIL_FROM
 import pytest
 from email.parser import Parser
 from email.message import Message
@@ -60,7 +60,7 @@ def mock_smtp(monkeypatch):
 
     mocked_smtp = MockSMTP()
 
-    monkeypatch.setattr(yuubin.connectors.smtp, "SMTP", mocked_smtp)
+    monkeypatch.setattr(pyuubin.connectors.smtp, "SMTP", mocked_smtp)
 
     return mocked_smtp
 

@@ -1,4 +1,4 @@
-from yuubin.health import get_health, update_health
+from pyuubin.health import get_health, update_health
 
 
 def test_health_updates():

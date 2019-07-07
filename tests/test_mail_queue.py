@@ -1,5 +1,5 @@
-from yuubin.db import RedisDb
-import yuubin.db
+from pyuubin.db import RedisDb
+import pyuubin.db
 from pytest import fixture
 import asyncio
 
@@ -7,7 +7,7 @@ import asyncio
 @fixture
 def redis(monkeypatch, mock_aioredis):
 
-    mock_aioredis.monkeypatch_module(yuubin.db)
+    mock_aioredis.monkeypatch_module(pyuubin.db)
     return mock_aioredis
 
 

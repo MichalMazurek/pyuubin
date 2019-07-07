@@ -2,7 +2,7 @@ import os
 
 from envparse import env
 
-REDIS_PREFIX = os.getenv("REDIS_PREFIX", "yuubin:")
+REDIS_PREFIX = os.getenv("REDIS_PREFIX", "pyuubin:")
 
 REDIS_MAIL_QUEUE = os.getenv("REDIS_MAIL_QUEUE", f"{REDIS_PREFIX}:mail_queue")
 
@@ -18,7 +18,7 @@ SMTP_TLS = env.bool("SMTP_TLS", default=False)
 MAIL_FROM = os.getenv("MAIL_FROM", "account@example.tld")
 MAIL_RETURN = os.getenv("MAIL_RETURN_PATH", "returns@example.tld")
 
-MAIL_CONNECTOR = os.getenv("MAIL_CONNECTOR", "yuubin.connectors.smtp")
+MAIL_CONNECTOR = os.getenv("MAIL_CONNECTOR", "pyuubin.connectors.smtp")
 
 SSL_CERT = os.getenv("SSL_CERT", "./ssl-cert")
 SSL_KEY = os.getenv("SSL_CERT", "./ssl-private-key")

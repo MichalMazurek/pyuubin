@@ -3,13 +3,13 @@
 line-length=120
 
 [tool.poetry]
-name = "yuubin"
+name = "pyuubin"
 version = "19.1"
 description = "Mailing services with HTTP Api"
 authors = ["Michal Mazurek <michal@mazurek-inc.co.uk>"]
 license = "Apache-2.0"
 packages = [
-    {include = "yuubin"}
+    {include = "pyuubin"}
 ]
 
 [tool.poetry.dependencies]

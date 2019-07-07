@@ -1,4 +1,4 @@
-from yuubin.auth import load_user_db, password_matches, get_user_password, add_authentication
+from pyuubin.auth import load_user_db, password_matches, get_user_password, add_authentication
 
 from hypothesis import given
 from hypothesis.strategies import text

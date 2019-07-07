@@ -1,8 +1,8 @@
 import pytest
 from typing import Union
 from sanic.websocket import WebSocketProtocol
-from yuubin.api.app import get_app
-import yuubin.db as app_module
+from pyuubin.api.app import get_app
+import pyuubin.db as app_module
 from asyncio import Event, wait_for, TimeoutError
 from collections import defaultdict
 

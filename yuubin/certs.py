@@ -15,12 +15,12 @@ def make_request(bits) -> Tuple[X509.Request, EVP.PKey, str]:
     name = x.get_subject()
     name.C = "UK"
     name.CT = "Some State"
-    domain = f"{uuid4()}.yuubin.io"
+    domain = f"{uuid4()}.pyuubin.io"
     name.CN = domain
-    name.O = "Yuubin Self Signed Authority"  # noqa
+    name.O = "pyuubin Self Signed Authority"  # noqa
 
     ext1 = X509.new_extension("subjectAltName", f"DNS:{domain}")
-    ext2 = X509.new_extension("nsComment", "Yuubin Self signed")
+    ext2 = X509.new_extension("nsComment", "pyuubin Self signed")
     extstack = X509.X509_Extension_Stack()
     extstack.push(ext1)
     extstack.push(ext2)
@@ -54,7 +54,7 @@ def create_self_signed_certificate(cert_path, key_path):
     issuer = X509.X509_Name()
     issuer.C = "UK"
     issuer.CN = domain
-    issuer.O = "Yuubin Self Signed Authority"  # noqa
+    issuer.O = "pyuubin Self Signed Authority"  # noqa
     cert.set_issuer(issuer)
     cert.set_pubkey(pkey)
 

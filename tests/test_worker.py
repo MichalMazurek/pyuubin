@@ -2,12 +2,12 @@ from typing import List
 from asynctest import CoroutineMock
 from asyncio import Event
 import pytest
-import yuubin.connectors.smtp
-import yuubin.worker
-from yuubin.models import Mail
-from yuubin.db import RedisDb, unpack
-from yuubin.settings import REDIS_MAIL_QUEUE
-from yuubin.worker import worker, CannotSendMessages, FailedToSendMessage
+import pyuubin.connectors.smtp
+import pyuubin.worker
+from pyuubin.models import Mail
+from pyuubin.db import RedisDb, unpack
+from pyuubin.settings import REDIS_MAIL_QUEUE
+from pyuubin.worker import worker, CannotSendMessages, FailedToSendMessage
 
 
 class MockRedisDb(RedisDb):
@@ -34,7 +34,7 @@ class MockRedisDb(RedisDb):
 def mock_redis_db(mock_aioredis, monkeypatch):
     mock_aioredis.monkeypatch_module()
     redis_db = MockRedisDb("test", "redis://localhost")
-    monkeypatch.setattr(yuubin.worker, "RedisDb", redis_db)
+    monkeypatch.setattr(pyuubin.worker, "RedisDb", redis_db)
     return redis_db
 
 
@@ -53,7 +53,7 @@ async def test_worker(mock_aioredis, monkeypatch, mock_redis_db):
 
     send_mock = CoroutineMock()
 
-    monkeypatch.setattr(yuubin.connectors.smtp, "send", send_mock)
+    monkeypatch.setattr(pyuubin.connectors.smtp, "send", send_mock)
 
     await mock_redis_db.connect()
     [await mock_redis_db.add_mail(mail.to_native()) for mail in mail_generator(4)]
@@ -78,7 +78,7 @@ async def test_worker_exception_cannot_send_messages(mock_aioredis, monkeypatch,
     send_mock.side_effect = raise_connect_error
 
     stopped_event = Event()
-    monkeypatch.setattr(yuubin.connectors.smtp, "send", send_mock)
+    monkeypatch.setattr(pyuubin.connectors.smtp, "send", send_mock)
 
     await mock_redis_db.connect()
     [await mock_redis_db.add_mail(mail.to_native()) for mail in mail_generator(4)]
@@ -100,7 +100,7 @@ async def test_worker_exception_failed_to_send_message(mock_aioredis, monkeypatc
     send_mock.side_effect = raise_connect_error
 
     stopped_event = Event()
-    monkeypatch.setattr(yuubin.connectors.smtp, "send", send_mock)
+    monkeypatch.setattr(pyuubin.connectors.smtp, "send", send_mock)
 
     await mock_redis_db.connect()
     [await mock_redis_db.add_mail(mail.to_native()) for mail in mail_generator(4)]

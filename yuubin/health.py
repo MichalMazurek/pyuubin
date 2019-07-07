@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 
 from sanic import response
 
-from yuubin import __version__ as version
+from pyuubin import __version__ as version
 
 
 def health_dict():

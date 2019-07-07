@@ -1,4 +1,4 @@
-from yuubin.certs import create_self_signed_certificate
+from pyuubin.certs import create_self_signed_certificate
 from click.testing import CliRunner
 from pathlib import Path
 from subprocess import run

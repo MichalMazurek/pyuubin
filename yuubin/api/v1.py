@@ -7,61 +7,51 @@ from schematics import Model
 from schematics.types import IntType, StringType, DictType, UnionType, NumberType
 from transmute_core import ResponseShapeComplex, TransmuteContext
 
-from yuubin.models import Mail, Template
-from yuubin.templates import Templates
+from pyuubin.models import Mail, Template
+from pyuubin.templates import Templates
+from pyuubin.db import redisdb
 from typing import Any, Dict
+from fastapi import FastAPI
+from pydantic import BaseModel
 
 blueprint = Blueprint("v1", url_prefix="/api/v1")
 
-
-@dataclass(init=False)
-class APIOK(Model):
-    message: str = StringType()
+app = FastAPI()
 
 
-@describe(paths="/send", methods=["POST"], body_parameters="mail")
-async def send_email(request: Request, mail: Mail) -> APIOK:
-
-    await request.app.db.add_mail(mail)
-    return {"message": "ok"}
+class APIOK(BaseModel):
+    message: str
 
 
-add_route(blueprint, send_email)
+@app.post("/send", response_model=APIOK)
+async def send_email(mail: Mail) -> APIOK:
+
+    await redisdb.add_mail(mail)
+    return APIOK(message="OK")
 
 
-@dataclass
-class Stats(Model):
-    mail_queue_size: int = IntType()
+class Stats(BaseModel):
+    mail_queue_size: int
 
 
-@describe(paths="/stats", methods="GET")
+@app.get("/stats", response_model=Stats)
 async def stats(request: Request) -> Stats:
 
-    return {"mail_queue_size": await request.app.db.mail_queue_size()}
+    return Stats(mail_queue_size=await request.app.db.mail_queue_size())
 
 
-add_route(blueprint, stats)
-
-
-@describe(paths="/template", methods="POST", body_parameters="template", success_code=201)
+@app.post("/template", status_code=201, response_model=APIOK)
 async def add_template(request: Request, template: Template) -> APIOK:
-
-    await request.app.db.add_template(template)
+    await redisdb.add_template(template)
     return APIOK({"message": "ok"})
 
 
-context = TransmuteContext(response_shape=ResponseShapeComplex)
-add_route(blueprint, add_template, context=context)
-
-
 @describe(paths="/template/{template_id}/delete", methods="POST", success_code=204)
+@app.post("/template/{template_id}/delete", status_code=204, response_model=APIOK)
 async def remove_template(request: Request, template_id: str) -> APIOK:
 
     await request.app.db.remove_template(template_id)
     return APIOK({"message": "OK"})
-
-
-add_route(blueprint, remove_template)
 
 
 @describe(paths="/template/{template_id}/render", methods="POST", body_parameters="parameters")

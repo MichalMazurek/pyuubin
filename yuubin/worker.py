@@ -5,10 +5,10 @@ from uuid import uuid4
 import sys
 import tblib
 
-from yuubin.db import RedisDb
-from yuubin.exceptions import CannotSendMessages, FailedToSendMessage
-from yuubin.mailer import send_mail
-from yuubin.templates import Templates
+from pyuubin.db import RedisDb
+from pyuubin.exceptions import CannotSendMessages, FailedToSendMessage
+from pyuubin.mailer import send_mail
+from pyuubin.templates import Templates
 
 
 async def worker(

@@ -4,10 +4,10 @@ from email.message import EmailMessage
 import html2text
 from aiosmtplib import SMTP, SMTPAuthenticationError, SMTPConnectError, SMTPRecipientsRefused, SMTPResponseException
 
-from yuubin import settings
-from yuubin.exceptions import CannotSendMessages, FailedToSendMessage
-from yuubin.models import Mail
-from yuubin.templates import Templates
+from pyuubin import settings
+from pyuubin.exceptions import CannotSendMessages, FailedToSendMessage
+from pyuubin.models import Mail
+from pyuubin.templates import Templates
 
 log = logging.getLogger(__name__)
 

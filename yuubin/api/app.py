@@ -1,18 +1,17 @@
 from sanic import Sanic
 from sanic_transmute import add_swagger
 
-from yuubin.api.v1 import blueprint as v1_blueprint
-from yuubin.db import RedisDb
-from yuubin.health import health_endpoint
-from yuubin.settings import REDIS_URL
+from pyuubin.api.v1 import blueprint as v1_blueprint
+from pyuubin.db import redisdb
+from pyuubin.health import health_endpoint
+from pyuubin.settings import REDIS_URL
 import logging
 
 
 async def attach_db(app, loop):
     """Attach the redis db to app."""
     try:
-        app.db = RedisDb("api", REDIS_URL)
-        await app.db.connect()
+        await redisdb.connect(REDIS_URL)
     except ConnectionError as e:
         log = logging.getLogger()
         log.error(f"Cannot connect to redis: {e}")

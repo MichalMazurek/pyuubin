@@ -1,4 +1,4 @@
-from yuubin.templates import Templates
+from pyuubin.templates import Templates
 
 TEST_TEMPLATE = """
 <!DOCTYPE html>

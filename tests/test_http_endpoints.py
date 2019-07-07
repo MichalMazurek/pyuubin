@@ -1,8 +1,8 @@
-import yuubin.settings as settings
+import pyuubin.settings as settings
 import pytest
-from yuubin.db import unpack, _t_id
-from yuubin.models import Mail
-from yuubin.health import update_health
+from pyuubin.db import unpack, _t_id
+from pyuubin.models import Mail
+from pyuubin.health import update_health
 
 
 async def test_send(test_cli, mock_aioredis):

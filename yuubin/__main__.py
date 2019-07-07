@@ -6,10 +6,10 @@ from signal import SIGINT, SIGTERM, signal
 
 import click
 
-import yuubin.settings as settings
-from yuubin.api.app import get_app
-from yuubin.auth import add_authentication
-from yuubin.worker import worker as mailer_worker
+import pyuubin.settings as settings
+from pyuubin.api.app import get_app
+from pyuubin.auth import add_authentication
+from pyuubin.worker import worker as mailer_worker
 
 coloredlogs.install()
 
@@ -20,7 +20,7 @@ coloredlogs.install()
 @click.option("-p", "--port", envvar="HTTP_PORT", default=8080, type=int, help="Port to run HTTP API on.")
 @click.option("-d", "--debug", envvar="DEBUG", default=False, flag_value=True, help="Enable debug mode.")
 @click.option("-r", "--redis-url", envvar="REDIS_URL", default="redis://localhost:6379", help="Url to redis.")
-@click.option("-e", "--prefix", envvar="REDIS_PREFIX", default="yuubin:", help="Prefix for mail queue.")
+@click.option("-e", "--prefix", envvar="REDIS_PREFIX", default="pyuubin:", help="Prefix for mail queue.")
 @click.option("-q", "--queue-name", envvar="REDIS_MAIL_QUEUE", default=None, help="Mail queue name.")
 @click.option(
     "-P", "--htpasswd-file", envvar="AUTH_HTPASSWD_FILE", default="", help="A htpasswd file with passwords for app"
@@ -55,7 +55,7 @@ def main(
             return None
 
         if not Path(settings.SSL_CERT).exists():
-            import yuubin.certs as certs
+            import pyuubin.certs as certs
 
             certs.create_self_signed_certificate(settings.SSL_CERT, settings.SSL_KEY)
 

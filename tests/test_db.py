@@ -1,4 +1,4 @@
-from yuubin.db import Mail, RedisDb
+from pyuubin.db import Mail, RedisDb
 import pytest
 
 pytestmark = pytest.mark.asyncio()

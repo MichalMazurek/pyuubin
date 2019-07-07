@@ -1,7 +1,7 @@
 import click
 
-from yuubin.api.app import get_app
-from yuubin.settings import REDIS_URL
+from pyuubin.api.app import get_app
+from pyuubin.settings import REDIS_URL
 
 
 @click.command()
