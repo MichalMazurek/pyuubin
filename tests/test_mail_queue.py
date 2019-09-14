@@ -1,6 +1,6 @@
 import asyncio
 
-from pytest import fixture
+from pytest import fixture, mark
 
 import pyuubin.db
 from pyuubin.db import RedisDb
@@ -14,7 +14,8 @@ def redis(monkeypatch, mock_aioredis):
     return mock_aioredis
 
 
-async def test_mail_pop(redis, loop):
+@mark.asyncio
+async def test_mail_pop(redis):
 
     db = RedisDb()
     await db.connect("redis://localhost:6379/0")
@@ -34,8 +35,6 @@ async def test_mail_pop(redis, loop):
     async def async_add_mail(email_dict):
         await asyncio.sleep(1)
         await db.add_mail(email_dict)
-
-    counter = 0
 
     async with db.mail_consumer("worker1") as consumer:
         async for mail in consumer.mail_queue():

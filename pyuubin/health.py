@@ -2,10 +2,6 @@ from collections import defaultdict
 from copy import deepcopy
 from typing import Any, Dict, List
 
-from sanic import response
-
-from pyuubin import __version__ as version
-
 
 def health_dict():
     return defaultdict(health_dict)

@@ -3,13 +3,24 @@ from email.parser import Parser
 from typing import List, Optional
 
 import pytest
-from aiosmtplib import SMTPAuthenticationError, SMTPConnectError, SMTPRecipientsRefused, SMTPResponseException
+from aiosmtplib import (
+    SMTPAuthenticationError,
+    SMTPConnectError,
+    SMTPRecipientsRefused,
+    SMTPResponseException,
+)
 
 import pyuubin.connectors.smtp
-from pyuubin.connectors.smtp import CannotSendMessages, FailedToSendMessage, send
+from pyuubin.connectors.smtp import (
+    CannotSendMessages,
+    FailedToSendMessage,
+    send,
+)
 from pyuubin.models import Mail
-from pyuubin.settings import MAIL_FROM
+from pyuubin.settings import settings
 from pyuubin.templates import Templates
+
+pytestmark = pytest.mark.asyncio
 
 
 class MockSMTP:
@@ -116,7 +127,7 @@ async def test_send(mock_smtp):
 
     lines = message.splitlines()
 
-    assert f"From: {MAIL_FROM}" in lines
+    assert f"From: {settings.mail_from}" in lines
     assert f"Subject: test subject" in lines
     assert f"To: test@example.com" in lines
 

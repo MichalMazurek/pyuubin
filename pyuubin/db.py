@@ -1,6 +1,5 @@
 from asyncio import Event
 from contextlib import asynccontextmanager
-from dataclasses import asdict
 from logging import getLogger
 from typing import Any, Dict, Optional
 
@@ -10,7 +9,7 @@ from tblib import pickling_support
 
 from pyuubin.exceptions import RedisNotConnected
 from pyuubin.models import Mail, Template
-from pyuubin.settings import REDIS_MAIL_QUEUE, REDIS_PREFIX
+from pyuubin.settings import settings
 
 pickling_support.install()
 
@@ -35,11 +34,11 @@ def _t_id(template_id: str) -> str:
     Returns:
         str: redis key for the template
     """
-    return REDIS_PREFIX + f":templates:{template_id}"
+    return settings.redis_prefix + f":templates:{template_id}"
 
 
 def get_consumer_queue_name(consumer_name: str) -> str:
-    return f"{REDIS_MAIL_QUEUE}::consumer::{consumer_name}"
+    return f"{settings.redis_mail_queue}::consumer::{consumer_name}"
 
 
 class MailQueueConsumer:
@@ -50,20 +49,23 @@ class MailQueueConsumer:
         self.db = db
 
     async def report_failed_mail(self, mail: Mail, traceback: Dict[str, Any]):
-        """Report failed mail to a failed mails queue which is: "{REDIS_MAIL_QUEUE}::failed"
+        """Report failed mail to a failed mails queue which is: "{settings.redis_mail_queue}::failed"
 
         Args:
             mail (Mail): mail object
             traceback (Dict[str, Any]): serialized traceback with tblib
         """
         new_mail_parameters = dict(
-            (key, "X" * len(value) if key.startswith("secret_") else value) for key, value in mail.parameters.items()
+            (key, "X" * len(value) if key.startswith("secret_") else value)
+            for key, value in mail.parameters.items()
         )
-        failed_mail = asdict(mail)
+        failed_mail = mail.dict()
         failed_mail["parameters"] = new_mail_parameters
 
         payload = {"mail": failed_mail, "traceback": traceback}
-        await self.db.redis.lpush(f"{REDIS_MAIL_QUEUE}::failed", pack(payload))
+        await self.db.redis.lpush(
+            f"{settings.redis_mail_queue}::failed", pack(payload)
+        )
 
     async def consumer_queue_size(self):
         return await self.db.redis.llen(self.consumer_queue)
@@ -72,7 +74,9 @@ class MailQueueConsumer:
         """Pop one email"""
         self.stopped_event = stopped_event or Event()
         while not self.stopped_event.is_set():
-            mail = await self.db.redis.brpoplpush(REDIS_MAIL_QUEUE, self.consumer_queue, timeout=1)
+            mail = await self.db.redis.brpoplpush(
+                settings.redis_mail_queue, self.consumer_queue, timeout=1
+            )
             if mail is not None:
                 yield Mail(**unpack(mail))
 
@@ -89,7 +93,9 @@ class MailQueueConsumer:
     async def cleanup(self):
         """Push all leftover messages back to the queue."""
         log.debug(f"Cleaning up the consumer queue. {self.consumer_name}")
-        while await self.db.redis.rpoplpush(self.consumer_queue, REDIS_MAIL_QUEUE):
+        while await self.db.redis.rpoplpush(
+            self.consumer_queue, settings.redis_mail_queue
+        ):
             continue
 
 
@@ -128,12 +134,14 @@ class RedisDb:
 
     async def add_mail(self, mail: Mail, failure=False):
         try:
-            await self.redis.lpush(REDIS_MAIL_QUEUE, pack(mail.dict()))
+            await self.redis.lpush(
+                settings.redis_mail_queue, pack(mail.dict())
+            )
         except TypeError as e:
             raise TypeError(f"Wrong keywords for Mail: {e}")
 
     async def mail_queue_size(self):
-        return await self.redis.llen(REDIS_MAIL_QUEUE)
+        return await self.redis.llen(settings.redis_mail_queue)
 
     async def close(self):
         if self.redis is not None:
@@ -145,7 +153,7 @@ class RedisDb:
         """Create a mail queue consumer."""
         consumer = MailQueueConsumer(consumer_name, self)
         yield consumer
-        consumer.cleanup()
+        await consumer.cleanup()
 
     async def add_template(self, template: Template):
         """Add/Replace template in REDIS."""

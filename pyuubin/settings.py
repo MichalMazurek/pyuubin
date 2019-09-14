@@ -1,28 +1,35 @@
-import os
+import dotenv
+from pydantic import BaseSettings, SecretStr
 
-from envparse import env
-
-REDIS_PREFIX = os.getenv("REDIS_PREFIX", "pyuubin:")
-
-REDIS_MAIL_QUEUE = os.getenv("REDIS_MAIL_QUEUE", f"{REDIS_PREFIX}:mail_queue")
-
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+dotenv.load_dotenv()
 
 
-SMTP_HOST = os.getenv("SMTP_HOST", "localhost")
-SMTP_PORT = int(os.getenv("SMTP_PORT", 5025))
-SMTP_USER = os.getenv("SMTP_USER", "")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
-SMTP_TLS = env.bool("SMTP_TLS", default=False)
+class Settings(BaseSettings):
 
-MAIL_FROM = os.getenv("MAIL_FROM", "account@example.tld")
-MAIL_RETURN = os.getenv("MAIL_RETURN_PATH", "returns@example.tld")
+    redis_prefix: str = "pyuubin:"
+    redis_mail_queue: str = "pyuubin::mail_queue"
+    redis_url: str = "redis://localhost:6379"
 
-MAIL_CONNECTOR = os.getenv("MAIL_CONNECTOR", "pyuubin.connectors.smtp")
+    smtp_host: str = "localhost"
+    smtp_port: int = 5025
+    smtp_user: str = ""
+    smtp_password: SecretStr = SecretStr("")
+    smtp_tls: bool = False
 
-SSL_CERT = os.getenv("SSL_CERT", "./ssl-cert")
-SSL_KEY = os.getenv("SSL_CERT", "./ssl-private-key")
+    mail_from: str = "account@example.ltd"
+    mail_return: str = "returns@exampple.tld"
+    mail_connector: str = "pyuubin.connectors.smtp"
 
-SSL_ENABLED = env.bool("SSL_ENABLED", default=True)
+    auth_htpasswd_file: str = ""
 
-AUTH_HTPASSWD_FILE = os.getenv("AUTH_HTTPASSWD_FILE", default="")
+    class Config:
+        env_prefix = "PYUUBIN_"
+
+
+settings = Settings()
+
+
+def print_env_variables():
+
+    for key, value in settings.dict().items():
+        print(f"{settings.Config.env_prefix}{key.upper()}={value}")

@@ -7,7 +7,12 @@ from hypothesis.strategies import text
 from starlette.testclient import TestClient
 
 from pyuubin.api.app import get_app
-from pyuubin.auth import add_authentication, get_user_password, load_user_db, password_matches
+from pyuubin.auth import (
+    add_authentication,
+    get_user_password,
+    load_user_db,
+    password_matches,
+)
 
 TEST_HTPASSWD = """test:$2y$05$./BIQMqWvesvVNo5RFiQ1.277hZ9WRIr6h2t3VDRrunc8XAwdKphK
 """
@@ -29,7 +34,9 @@ def test_loading_user_db():
 @given(text())
 def test_weird_password(passwd):
 
-    assert not password_matches(passwd, "$2y$05$./BIQMqWvesvVNo5RFiQ1.277hZ9WRIr6h2t3VDRrunc8XAwdKphK")
+    assert not password_matches(
+        passwd, "$2y$05$./BIQMqWvesvVNo5RFiQ1.277hZ9WRIr6h2t3VDRrunc8XAwdKphK"
+    )
 
 
 @given(text())
@@ -49,7 +56,7 @@ def test_weird_tokens_encoded(random_token: str):
 
 
 @pytest.fixture
-def test_auth_cli(loop, mock_aioredis):
+def test_auth_cli(mock_aioredis):
     mock_aioredis.monkeypatch_module()
     with CliRunner().isolated_filesystem():
         with open("./test_htpasswd", "w") as f:
@@ -71,5 +78,7 @@ def test_auth_success(test_auth_cli):
 
     working_auth = b64encode("test:test".encode("utf8")).decode("utf8")
 
-    response = test_auth_cli.get("/api/v1/stats", headers={"Authorization": f"Basic {working_auth}"})
+    response = test_auth_cli.get(
+        "/api/v1/stats", headers={"Authorization": f"Basic {working_auth}"}
+    )
     assert response.status_code == 200

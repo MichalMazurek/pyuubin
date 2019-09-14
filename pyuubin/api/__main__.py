@@ -1,7 +1,7 @@
 import click
+from hypercorn.run import run
 
 from pyuubin.api.app import get_app
-from pyuubin.settings import REDIS_URL
 
 
 @click.command()
@@ -9,8 +9,9 @@ from pyuubin.settings import REDIS_URL
 @click.option("--port", "-p", default=8000)
 def main(host: str, port: int):
 
-    app = get_app(REDIS_URL)
-    app.run(host, port)
+    app = get_app()
+
+    run(app)
 
 
 if __name__ == "__main__":

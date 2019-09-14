@@ -11,4 +11,3 @@ def test_health_updates():
     assert health["status"]["threads"]["1"] == "test"
     assert health["some"]["thing"] == "to test"
     assert health["start_date"] == "something"
-

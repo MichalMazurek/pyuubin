@@ -1,0 +1,10 @@
+export PYTHONWARNINGS="ignore"
+PYTHONWARNINGS="ignore"
+
+export PYUUBIN_SMTP_USER="test@gmail.com"
+export PYUUBIN_SMTP_PASSWORD="secret"
+export PYUUBIN_SMTP_PORT="465"
+export PYUUBIN_SMTP_HOST="smtp.gmail.com"
+export PYUUBIN_SMTP_TLS="1"
+export PYUUBIN_MAIL_FROM="test@gmail.com"
+export PYUUBIN_MAIL_RETURN_PATH="test@gmail.com"

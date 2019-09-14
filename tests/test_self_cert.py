@@ -1,7 +1,9 @@
-from pyuubin.certs import create_self_signed_certificate
-from click.testing import CliRunner
 from pathlib import Path
 from subprocess import run
+
+from click.testing import CliRunner
+
+from pyuubin.certs import create_self_signed_certificate
 
 
 def test_creation():
@@ -17,6 +19,9 @@ def test_creation():
 
         assert Path("./private_key").read_text() != ""
 
-        result = run(["openssl", "verify", "-CAfile", "./cert", "./cert"], stderr=True, stdout=True)
+        result = run(
+            ["openssl", "verify", "-CAfile", "./cert", "./cert"],
+            stderr=True,
+            stdout=True,
+        )
         assert result.returncode == 0, result.stdout()
-

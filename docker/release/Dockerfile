@@ -3,18 +3,18 @@ FROM python:3.7
 ARG version
 ARG repository
 
-RUN apt-get update
-RUN apt-get install -y libssl-dev swig
-
-ENV REDIS_URL=redis://redis
-ENV REDIS_PREFIX=yuubin:
-ENV HTTP_HOST=0.0.0.0
-ENV HTTP_PORT=8080
-ENV DEBUG=0
-ENV SSL_ENABLED=yes
-ENV SSL_CERT=/cert.pem
-ENV SSL_KEY=/cert.pkey
-ENV AUTH_HTPASSWD_FILE=""
+ENV PYUUBIN_REDIS_MAIL_QUEUE=pyuubin::mail_queue
+ENV PYUUBIN_REDIS_URL=redis://redis:6379
+ENV PYUUBIN_REDIS_PREFIX=pyuubin:
+ENV PYUUBIN_SMTP_HOST=smtp.gmail.com
+ENV PYUUBIN_SMTP_PORT=465
+ENV PYUUBIN_SMTP_USER=test@gmail.com
+ENV PYUUBIN_SMTP_PASSWORD=secret
+ENV PYUUBIN_SMTP_TLS=True
+ENV PYUUBIN_MAIL_FROM=test@gmail.com
+ENV PYUUBIN_MAIL_RETURN=test@gmail.com
+ENV PYUUBIN_MAIL_CONNECTOR=pyuubin.connectors.smtp
+ENV PYUUBIN_AUTH_HTPASSWD_FILE=
 
 ENV YUUBIN_VERSION=$version
 
@@ -25,5 +25,5 @@ RUN rm /install.sh
 
 WORKDIR  /srv
 
-CMD [ "python3", "-m", "yuubin" ]
+CMD [ "hypercorn", "pyuubin.api.app:app", "--bind", "0.0.0.0:8000", "--access-log", "-", "--error-log", "-" ]
 

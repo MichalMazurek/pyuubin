@@ -4,10 +4,11 @@ from fastapi import Body, FastAPI
 from pydantic import BaseModel
 
 from pyuubin.db import redisdb
+from pyuubin.health import get_health
 from pyuubin.models import Mail, Template
 from pyuubin.templates import Templates
 
-app = FastAPI()
+app = FastAPI(title="Pyuubin - Mailing System", openapi_prefix="/api/v1/")
 
 
 class APIOK(BaseModel):
@@ -36,7 +37,9 @@ async def add_template(template: Template) -> APIOK:
     return APIOK(message="ok")
 
 
-@app.post("/template/{template_id}/delete", status_code=204, response_model=APIOK)
+@app.post(
+    "/template/{template_id}/delete", status_code=204, response_model=APIOK
+)
 async def remove_template(template_id: str) -> APIOK:
 
     await redisdb.remove_template(template_id)
@@ -51,13 +54,14 @@ async def render_template(template_id: str, parameters: Dict[str, Any]) -> str:
 
 
 @app.post("/template/test-render")
-async def render_test_template(template: str = Body(...), parameters: Dict[str, Any] = Body(...)) -> str:
+async def render_test_template(
+    template: str = Body(...), parameters: Dict[str, Any] = Body(...)
+) -> str:
 
     templates = Templates({"test-template": template})
     return await templates.render("test-template", parameters)
 
 
-class TestingTemplate(BaseModel):
-
-    template: str
-    parameters: Dict[str, Any]
+@app.get("/health")
+async def health_endpoint() -> Dict[str, Any]:
+    return get_health()

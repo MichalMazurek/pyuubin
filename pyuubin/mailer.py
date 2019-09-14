@@ -2,7 +2,7 @@ from importlib import import_module
 from typing import Awaitable, Coroutine
 
 from pyuubin.models import Mail
-from pyuubin.settings import MAIL_CONNECTOR
+from pyuubin.settings import settings
 from pyuubin.templates import Templates
 
 
@@ -23,5 +23,5 @@ async def send_mail(mail: Mail, templates: Templates):
         mail (Mail): mail object
     """
 
-    send = get_connector(MAIL_CONNECTOR)
+    send = get_connector(settings.mail_connector)
     await send(mail, templates)

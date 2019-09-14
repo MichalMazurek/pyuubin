@@ -7,7 +7,12 @@ from asynctest import CoroutineMock
 
 import pyuubin.connectors.smtp
 import pyuubin.worker
-from pyuubin.db import MailQueueConsumer, RedisDb, get_consumer_queue_name, unpack
+from pyuubin.db import (
+    MailQueueConsumer,
+    RedisDb,
+    get_consumer_queue_name,
+    unpack,
+)
 from pyuubin.models import Mail
 from pyuubin.settings import REDIS_MAIL_QUEUE
 from pyuubin.worker import CannotSendMessages, FailedToSendMessage, worker
@@ -34,7 +39,7 @@ class MockRedisDb(RedisDb):
 
         consumer = MockMailQueueConsumer(consumer_name, self)
         yield consumer
-        consumer.cleanup()
+        await consumer.cleanup()
 
 
 @pytest.fixture
@@ -57,6 +62,7 @@ def mail_generator(count: int) -> List[Mail]:
         )
 
 
+@pytest.mark.asyncio
 async def test_worker(mock_aioredis, monkeypatch, mock_redis_db):
 
     send_mock = CoroutineMock()
@@ -76,7 +82,10 @@ async def test_worker(mock_aioredis, monkeypatch, mock_redis_db):
     assert send_mock.await_count == 4
 
 
-async def test_worker_exception_cannot_send_messages(mock_aioredis, monkeypatch, mock_redis_db):
+@pytest.mark.asyncio
+async def test_worker_exception_cannot_send_messages(
+    mock_aioredis, monkeypatch, mock_redis_db
+):
 
     send_mock = CoroutineMock()
 
@@ -89,7 +98,7 @@ async def test_worker_exception_cannot_send_messages(mock_aioredis, monkeypatch,
     monkeypatch.setattr(pyuubin.connectors.smtp, "send", send_mock)
 
     await mock_redis_db.connect()
-    [await mock_redis_db.add_mail(mail.to_native()) for mail in mail_generator(4)]
+    [await mock_redis_db.add_mail(mail) for mail in mail_generator(4)]
 
     await worker("test", "redis://localhost", stopped_event=stopped_event)
 
@@ -98,7 +107,10 @@ async def test_worker_exception_cannot_send_messages(mock_aioredis, monkeypatch,
     assert stopped_event.is_set()
 
 
-async def test_worker_exception_failed_to_send_message(mock_aioredis, monkeypatch, mock_redis_db):
+@pytest.mark.asyncio
+async def test_worker_exception_failed_to_send_message(
+    mock_aioredis, monkeypatch, mock_redis_db
+):
 
     send_mock = CoroutineMock()
 
@@ -111,7 +123,7 @@ async def test_worker_exception_failed_to_send_message(mock_aioredis, monkeypatc
     monkeypatch.setattr(pyuubin.connectors.smtp, "send", send_mock)
 
     await mock_redis_db.connect()
-    [await mock_redis_db.add_mail(mail.to_native()) for mail in mail_generator(4)]
+    [await mock_redis_db.add_mail(mail) for mail in mail_generator(4)]
 
     await worker("test", "redis://localhost", stopped_event=stopped_event)
 
@@ -120,5 +132,7 @@ async def test_worker_exception_failed_to_send_message(mock_aioredis, monkeypatc
     assert not stopped_event.is_set()
 
     assert await mock_aioredis.llen(f"{REDIS_MAIL_QUEUE}::failed") == 4
-    failed_msg = unpack(await mock_aioredis.rpop(f"{REDIS_MAIL_QUEUE}::failed"))["mail"]
+    failed_msg = unpack(
+        await mock_aioredis.rpop(f"{REDIS_MAIL_QUEUE}::failed")
+    )["mail"]
     assert failed_msg["parameters"]["secret_data"] == "XXXXXX"

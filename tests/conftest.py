@@ -3,7 +3,6 @@ from collections import defaultdict
 from typing import Union
 
 import pytest
-from sanic.websocket import WebSocketProtocol
 
 import pyuubin.db as app_module
 from pyuubin.api.app import get_app
@@ -51,7 +50,11 @@ class MockedAioRedis(object):
         except ValueError:
             preffix = ""
 
-        return [key.encode("utf8") for key in self.me.keys() if key.startswith(preffix)]
+        return [
+            key.encode("utf8")
+            for key in self.me.keys()
+            if key.startswith(preffix)
+        ]
 
     async def ttl(self, key):
         return self.expires[key]
@@ -83,6 +86,14 @@ class MockedAioRedis(object):
     async def rpop(self, key):
         return self.me[key].pop()
 
+    async def rpoplpush(self, key_1, key_2):
+        try:
+            item = self.me[key_1].pop()
+            await self.lpush(key_2, item)
+            return item
+        except IndexError:
+            return None
+
     async def lrange(self, key, start, stop):
 
         return list(self.me[key][start:stop])
@@ -96,7 +107,9 @@ class MockedAioRedis(object):
                 return item
             else:
                 try:
-                    await wait_for(self.my_events[key_1].wait(), timeout=timeout)
+                    await wait_for(
+                        self.my_events[key_1].wait(), timeout=timeout
+                    )
                     self.my_events[key_1].clear()
                     item = self.me[key_1].pop()
                     await self.lpush(key_2, item)
@@ -141,7 +154,7 @@ def app(mock_aioredis):
 
 
 @pytest.fixture
-def test_cli(loop, app, test_client):
+def test_cli(app):
 
     from starlette.testclient import TestClient
 

@@ -9,7 +9,13 @@ from pyuubin.models import Mail
 def test_send(test_cli, mock_aioredis):
 
     response = test_cli.post(
-        "/api/v1/send", json={"to": ["test@example.com"], "cc": [], "subject": "Test Email", "text": "Some text"}
+        "/api/v1/send",
+        json={
+            "to": ["test@example.com"],
+            "cc": [],
+            "subject": "Test Email",
+            "text": "Some text",
+        },
     )
 
     assert response.status_code == 200, response.text
@@ -42,8 +48,11 @@ TEST_TEMPLATE = """
 """
 
 
-def test_adding_templates(test_cli, mock_aioredis, loop):
-    response = test_cli.post("/api/v1/template", json={"template_id": "template1", "content": TEST_TEMPLATE})
+def test_adding_templates(test_cli, mock_aioredis):
+    response = test_cli.post(
+        "/api/v1/template",
+        json={"template_id": "template1", "content": TEST_TEMPLATE},
+    )
     assert response.status_code == 201
 
     template: bytes = mock_aioredis.me[_t_id("template1")]
@@ -53,14 +62,17 @@ def test_adding_templates(test_cli, mock_aioredis, loop):
 
 def test_remove_templates(test_cli, mock_aioredis):
 
-    response = test_cli.post("/api/v1/template", json={"template_id": "template2", "content": TEST_TEMPLATE})
-    response_json = response.json()
+    response = test_cli.post(
+        "/api/v1/template",
+        json={"template_id": "template2", "content": TEST_TEMPLATE},
+    )
+    assert response.json()
     assert response.status_code == 201
 
     response = test_cli.post("/api/v1/template/template2/delete", json="")
 
-    response_json = response.json()
+    assert response.json()
     assert response.status_code == 204
 
     with pytest.raises(KeyError):
-        template: bytes = mock_aioredis.me[_t_id("template2")]
+        assert mock_aioredis.me[_t_id("template2")]
