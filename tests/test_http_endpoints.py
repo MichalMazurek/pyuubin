@@ -1,30 +1,30 @@
-import pyuubin.settings as settings
 import pytest
-from pyuubin.db import unpack, _t_id
-from pyuubin.models import Mail
+
+import pyuubin.settings as settings
+from pyuubin.db import _t_id, unpack
 from pyuubin.health import update_health
+from pyuubin.models import Mail
 
 
-async def test_send(test_cli, mock_aioredis):
+def test_send(test_cli, mock_aioredis):
 
-    response = await test_cli.post(
+    response = test_cli.post(
         "/api/v1/send", json={"to": ["test@example.com"], "cc": [], "subject": "Test Email", "text": "Some text"}
     )
 
-    assert response.status == 200, await response.json()
+    assert response.status_code == 200, response.text
 
-    mail = Mail(**unpack(await mock_aioredis.rpop(settings.REDIS_MAIL_QUEUE)))
-
+    mail = Mail(**unpack(mock_aioredis.me[settings.REDIS_MAIL_QUEUE].pop()))
     assert mail.to[0] == "test@example.com"
 
 
-async def test_health(test_cli):
+def test_health(test_cli):
 
     update_health("test.smth", "test")
 
-    response = await test_cli.get("/health")
-    assert response.status == 200
-    status = await response.json()
+    response = test_cli.get("/health")
+    assert response.status_code == 200
+    status = response.json()
 
     assert status["test"]["smth"] == "test"
 
@@ -42,27 +42,25 @@ TEST_TEMPLATE = """
 """
 
 
-async def test_adding_templates(test_cli, mock_aioredis):
+def test_adding_templates(test_cli, mock_aioredis, loop):
+    response = test_cli.post("/api/v1/template", json={"template_id": "template1", "content": TEST_TEMPLATE})
+    assert response.status_code == 201
 
-    response = await test_cli.post("/api/v1/template/", json={"template_id": "template1", "content": TEST_TEMPLATE})
-    response_json = await response.json()
-    assert response.status == 201
-
-    template: bytes = await mock_aioredis.get(_t_id("template1"))
+    template: bytes = mock_aioredis.me[_t_id("template1")]
 
     assert template.decode("utf8") == TEST_TEMPLATE
 
 
-async def test_remove_templates(test_cli, mock_aioredis):
+def test_remove_templates(test_cli, mock_aioredis):
 
-    response = await test_cli.post("/api/v1/template/", json={"template_id": "template1", "content": TEST_TEMPLATE})
-    response_json = await response.json()
-    assert response.status == 201
+    response = test_cli.post("/api/v1/template", json={"template_id": "template2", "content": TEST_TEMPLATE})
+    response_json = response.json()
+    assert response.status_code == 201
 
-    response = await test_cli.post("/api/v1/template/template1/delete", json="")
+    response = test_cli.post("/api/v1/template/template2/delete", json="")
 
-    response_json = await response.json()
-    assert response.status == 204
+    response_json = response.json()
+    assert response.status_code == 204
 
-    template: bytes = await mock_aioredis.get(_t_id("template1"))
-    assert template is None
+    with pytest.raises(KeyError):
+        template: bytes = mock_aioredis.me[_t_id("template2")]

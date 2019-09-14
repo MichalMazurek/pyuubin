@@ -1,10 +1,10 @@
 import asyncio
 import logging
-import coloredlogs
 from pathlib import Path
 from signal import SIGINT, SIGTERM, signal
 
 import click
+import coloredlogs
 
 import pyuubin.settings as settings
 from pyuubin.api.app import get_app

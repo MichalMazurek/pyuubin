@@ -1,15 +1,16 @@
 from asyncio import Event
+from contextlib import asynccontextmanager
 from dataclasses import asdict
+from logging import getLogger
 from typing import Any, Dict, Optional
 
 import msgpack
 from aioredis import Redis, create_redis_pool
+from tblib import pickling_support
 
+from pyuubin.exceptions import RedisNotConnected
 from pyuubin.models import Mail, Template
 from pyuubin.settings import REDIS_MAIL_QUEUE, REDIS_PREFIX
-from tblib import pickling_support
-from contextlib import asynccontextmanager
-from logging import getLogger
 
 pickling_support.install()
 
@@ -37,10 +38,14 @@ def _t_id(template_id: str) -> str:
     return REDIS_PREFIX + f":templates:{template_id}"
 
 
+def get_consumer_queue_name(consumer_name: str) -> str:
+    return f"{REDIS_MAIL_QUEUE}::consumer::{consumer_name}"
+
+
 class MailQueueConsumer:
     def __init__(self, consumer_name: str, db: "RedisDb"):
         self.consumer_name = consumer_name
-        self.consumer_queue = f"{REDIS_MAIL_QUEUE}::consumer::{consumer_name}"
+        self.consumer_queue = get_consumer_queue_name(consumer_name)
         self.stopped_event = None
         self.db = db
 
@@ -67,7 +72,7 @@ class MailQueueConsumer:
         """Pop one email"""
         self.stopped_event = stopped_event or Event()
         while not self.stopped_event.is_set():
-            mail = await self.redis.brpoplpush(REDIS_MAIL_QUEUE, self.consumer_queue, timeout=1)
+            mail = await self.db.redis.brpoplpush(REDIS_MAIL_QUEUE, self.consumer_queue, timeout=1)
             if mail is not None:
                 yield Mail(**unpack(mail))
 
@@ -79,7 +84,7 @@ class MailQueueConsumer:
 
     async def ack_mail(self, mail: Mail):
         """Confirm email sent."""
-        await self.db.redis.lrem(self.consumer_queue, 1, pack(asdict(mail)))
+        await self.db.redis.lrem(self.consumer_queue, 1, pack(mail.dict()))
 
     async def cleanup(self):
         """Push all leftover messages back to the queue."""
@@ -91,30 +96,39 @@ class MailQueueConsumer:
 class RedisDb:
     """Redis db helper."""
 
-    redis: Redis
+    _redis: Redis
     consumer_name: str
     redis_url: str
     consumer_queue: str
     _templates: Dict[str, str]
 
     def __init__(self):
-        self.redis = None
+        self._redis = None
         self._templates = {}
 
     async def connect(self, redis_url: str = "redis://localhost:6379/0"):
         self.redis_url = redis_url
-        if self.redis is None:
-            self.redis = await create_redis_pool(redis_url)
-
+        self.redis = await create_redis_pool(redis_url)
         return self.redis
 
     @property
-    def connected(self):
-        return self.redis is not None
+    def redis(self):
+        if self._redis is not None:
+            return self._redis
+        else:
+            raise RedisNotConnected()
 
-    async def add_mail(self, mail: Dict[str, Any], failure=False):
+    @redis.setter
+    def redis(self, redis: Redis):
+        self._redis = redis
+
+    @property
+    def connected(self):
+        return self._redis is not None
+
+    async def add_mail(self, mail: Mail, failure=False):
         try:
-            await self.redis.lpush(REDIS_MAIL_QUEUE, pack(asdict(Mail(**mail))))
+            await self.redis.lpush(REDIS_MAIL_QUEUE, pack(mail.dict()))
         except TypeError as e:
             raise TypeError(f"Wrong keywords for Mail: {e}")
 

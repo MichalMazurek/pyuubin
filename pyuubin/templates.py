@@ -2,8 +2,8 @@ from typing import Any, Dict
 from uuid import uuid4
 
 from jinja2 import DictLoader
-from jinja2.sandbox import ImmutableSandboxedEnvironment
 from jinja2.exceptions import TemplateNotFound
+from jinja2.sandbox import ImmutableSandboxedEnvironment
 
 
 class Templates:

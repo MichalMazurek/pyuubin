@@ -1,14 +1,17 @@
-import pytest
-from typing import Union
-from sanic.websocket import WebSocketProtocol
-from pyuubin.api.app import get_app
-import pyuubin.db as app_module
-from asyncio import Event, wait_for, TimeoutError
+from asyncio import Event, TimeoutError, wait_for
 from collections import defaultdict
+from typing import Union
+
+import pytest
+from sanic.websocket import WebSocketProtocol
+
+import pyuubin.db as app_module
+from pyuubin.api.app import get_app
 
 
 class MockedAioRedis(object):
     def __init__(self, monkeypatch):
+
         self.me = {}
         self.monkeypatch = monkeypatch
         self.expires = {}
@@ -31,7 +34,6 @@ class MockedAioRedis(object):
         return self
 
     async def set(self, key, value, expire=0):
-
         self.me[key] = value.encode("utf8")
         if expire:
             self.expires[key] = expire
@@ -55,7 +57,10 @@ class MockedAioRedis(object):
         return self.expires[key]
 
     async def llen(self, key):
-        return len(self.me[key])
+        try:
+            return len(self.me[key])
+        except KeyError:
+            return 0
 
     async def delete(self, key):
         try:
@@ -96,7 +101,7 @@ class MockedAioRedis(object):
                     item = self.me[key_1].pop()
                     await self.lpush(key_2, item)
                     return item
-                except TimeoutError:
+                except (TimeoutError, IndexError):
                     return None
         except KeyError:
             return None
@@ -111,7 +116,6 @@ class MockedAioRedis(object):
         except KeyError:
             return None
         except ValueError:
-            print(self.me[key], value)
             raise
 
     def close(self):
@@ -121,8 +125,8 @@ class MockedAioRedis(object):
         pass
 
 
-@pytest.fixture
-async def mock_aioredis(monkeypatch):
+@pytest.fixture()
+def mock_aioredis(monkeypatch):
 
     with monkeypatch.context() as m:
         mocked_aioredis = MockedAioRedis(m)
@@ -138,4 +142,8 @@ def app(mock_aioredis):
 
 @pytest.fixture
 def test_cli(loop, app, test_client):
-    return loop.run_until_complete(test_client(app, protocol=WebSocketProtocol))
+
+    from starlette.testclient import TestClient
+
+    with TestClient(app) as client:
+        yield client

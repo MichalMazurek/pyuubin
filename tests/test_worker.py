@@ -1,39 +1,46 @@
-from typing import List
-from asynctest import CoroutineMock
 from asyncio import Event
+from contextlib import asynccontextmanager
+from typing import List
+
 import pytest
+from asynctest import CoroutineMock
+
 import pyuubin.connectors.smtp
 import pyuubin.worker
+from pyuubin.db import MailQueueConsumer, RedisDb, get_consumer_queue_name, unpack
 from pyuubin.models import Mail
-from pyuubin.db import RedisDb, unpack
 from pyuubin.settings import REDIS_MAIL_QUEUE
-from pyuubin.worker import worker, CannotSendMessages, FailedToSendMessage
+from pyuubin.worker import CannotSendMessages, FailedToSendMessage, worker
 
 
-class MockRedisDb(RedisDb):
-    def __call__(self, consumer_name: str, redis_url: str):
-
-        self.consumer_name = consumer_name
-        self.redis_url = redis_url
-        self.consumer_queue = f"{REDIS_MAIL_QUEUE}:{self.consumer_name}"
-
-        return self
-
+class MockMailQueueConsumer(MailQueueConsumer):
     async def mail_queue(self, stopped_event=None):
 
-        for _ in range(await self.redis.llen(REDIS_MAIL_QUEUE)):
-            mail = await self.redis.rpop(REDIS_MAIL_QUEUE)
+        for _ in range(await self.db.redis.llen(REDIS_MAIL_QUEUE)):
+            mail = await self.db.redis.rpop(REDIS_MAIL_QUEUE)
             if mail is not None:
-                await self.redis.lpush(self.consumer_queue, mail)
+                await self.db.redis.lpush(self.consumer_queue, mail)
                 yield Mail(**unpack(mail))
             else:
                 break
 
 
+class MockRedisDb(RedisDb):
+    def __call__(self):
+        return self
+
+    @asynccontextmanager
+    async def mail_consumer(self, consumer_name):
+
+        consumer = MockMailQueueConsumer(consumer_name, self)
+        yield consumer
+        consumer.cleanup()
+
+
 @pytest.fixture
 def mock_redis_db(mock_aioredis, monkeypatch):
     mock_aioredis.monkeypatch_module()
-    redis_db = MockRedisDb("test", "redis://localhost")
+    redis_db = MockRedisDb()
     monkeypatch.setattr(pyuubin.worker, "RedisDb", redis_db)
     return redis_db
 
@@ -46,6 +53,7 @@ def mail_generator(count: int) -> List[Mail]:
             subject=f"[{x}] test subject",
             parameters={"non_secret": "test", "secret_data": "secret"},
             template_id="none",
+            text="",
         )
 
 
@@ -56,11 +64,11 @@ async def test_worker(mock_aioredis, monkeypatch, mock_redis_db):
     monkeypatch.setattr(pyuubin.connectors.smtp, "send", send_mock)
 
     await mock_redis_db.connect()
-    [await mock_redis_db.add_mail(mail.to_native()) for mail in mail_generator(4)]
+    [await mock_redis_db.add_mail(mail) for mail in mail_generator(4)]
 
     await worker("test", "redis://localhost")
 
-    assert await mock_aioredis.llen(mock_redis_db.consumer_queue) == 0
+    assert await mock_aioredis.llen(get_consumer_queue_name("test")) == 0
     assert await mock_redis_db.mail_queue_size() == 0
 
     send_mock.assert_awaited()

@@ -1,13 +1,15 @@
+from email.message import Message
+from email.parser import Parser
+from typing import List, Optional
+
+import pytest
+from aiosmtplib import SMTPAuthenticationError, SMTPConnectError, SMTPRecipientsRefused, SMTPResponseException
+
 import pyuubin.connectors.smtp
-from pyuubin.connectors.smtp import send, CannotSendMessages, FailedToSendMessage
-from pyuubin.templates import Templates
+from pyuubin.connectors.smtp import CannotSendMessages, FailedToSendMessage, send
 from pyuubin.models import Mail
 from pyuubin.settings import MAIL_FROM
-import pytest
-from email.parser import Parser
-from email.message import Message
-from typing import List, Optional
-from aiosmtplib import SMTPConnectError, SMTPAuthenticationError, SMTPResponseException, SMTPRecipientsRefused
+from pyuubin.templates import Templates
 
 
 class MockSMTP:
@@ -65,11 +67,13 @@ def mock_smtp(monkeypatch):
     return mocked_smtp
 
 
-mail = Mail()
-mail.to = ["test@example.com"]
-mail.subject = "test subject"
-mail.template_id = "undefined"
-mail.parameters = {"message": "test"}
+mail = Mail(
+    to=["test@example.com"],
+    subject="test subject",
+    template_id="undefined",
+    parameters={"message": "test"},
+    text="Something",
+)
 
 templates = Templates({})
 

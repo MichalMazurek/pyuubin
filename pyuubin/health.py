@@ -36,8 +36,3 @@ def update_health(key: str, value: Any):
 def get_health() -> Dict[str, Any]:
 
     return deepcopy(_health)
-
-
-async def health_endpoint(request) -> response.BaseHTTPResponse:
-
-    return response.json({"version": version, **get_health()})

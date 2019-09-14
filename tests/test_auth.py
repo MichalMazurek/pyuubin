@@ -1,11 +1,13 @@
-from pyuubin.auth import load_user_db, password_matches, get_user_password, add_authentication
+from base64 import b64encode
 
+import pytest
+from click.testing import CliRunner
 from hypothesis import given
 from hypothesis.strategies import text
-from click.testing import CliRunner
-import pytest
-from sanic.websocket import WebSocketProtocol
-from base64 import b64encode
+from starlette.testclient import TestClient
+
+from pyuubin.api.app import get_app
+from pyuubin.auth import add_authentication, get_user_password, load_user_db, password_matches
 
 TEST_HTPASSWD = """test:$2y$05$./BIQMqWvesvVNo5RFiQ1.277hZ9WRIr6h2t3VDRrunc8XAwdKphK
 """
@@ -47,25 +49,27 @@ def test_weird_tokens_encoded(random_token: str):
 
 
 @pytest.fixture
-def test_auth_cli(loop, app, test_client):
-
+def test_auth_cli(loop, mock_aioredis):
+    mock_aioredis.monkeypatch_module()
     with CliRunner().isolated_filesystem():
         with open("./test_htpasswd", "w") as f:
             f.write(TEST_HTPASSWD)
-
+        app = get_app()
         add_authentication(app, "./test_htpasswd")
-        yield loop.run_until_complete(test_client(app, protocol=WebSocketProtocol))
+
+        with TestClient(app) as client:
+            yield client
 
 
-async def test_auth_failure(test_auth_cli):
+def test_auth_failure(test_auth_cli):
 
-    response = await test_auth_cli.get("/api/v1/")
-    assert response.status == 403
+    response = test_auth_cli.get("/api/v1/stats")
+    assert response.status_code == 401
 
 
-async def test_auth_success(test_auth_cli):
+def test_auth_success(test_auth_cli):
 
     working_auth = b64encode("test:test".encode("utf8")).decode("utf8")
 
-    response = await test_auth_cli.get("/api/v1/", headers={"Authorization": f"Basic {working_auth}"})
-    assert response.status == 200
+    response = test_auth_cli.get("/api/v1/stats", headers={"Authorization": f"Basic {working_auth}"})
+    assert response.status_code == 200
