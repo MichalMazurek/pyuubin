@@ -22,7 +22,7 @@ pip install .
 
 ## Running the service
 
-You need to run the API and Worker for the system to work.
+You need to run the API and Worker for the system to work. Also you need a Redis instance running somewhere and API and Worker configured to use it.
 
 ### The API
 
