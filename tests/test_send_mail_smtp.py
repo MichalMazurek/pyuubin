@@ -67,6 +67,9 @@ class MockSMTP:
         self._send_exception = None
         self._connect_exception = None
 
+    def close(self):
+        """"""
+
 
 @pytest.fixture
 def mock_smtp(monkeypatch):

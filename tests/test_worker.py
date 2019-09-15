@@ -14,15 +14,15 @@ from pyuubin.db import (
     unpack,
 )
 from pyuubin.models import Mail
-from pyuubin.settings import REDIS_MAIL_QUEUE
+from pyuubin.settings import settings
 from pyuubin.worker import CannotSendMessages, FailedToSendMessage, worker
 
 
 class MockMailQueueConsumer(MailQueueConsumer):
     async def mail_queue(self, stopped_event=None):
 
-        for _ in range(await self.db.redis.llen(REDIS_MAIL_QUEUE)):
-            mail = await self.db.redis.rpop(REDIS_MAIL_QUEUE)
+        for _ in range(await self.db.redis.llen(settings.redis_mail_queue)):
+            mail = await self.db.redis.rpop(settings.redis_mail_queue)
             if mail is not None:
                 await self.db.redis.lpush(self.consumer_queue, mail)
                 yield Mail(**unpack(mail))
@@ -131,8 +131,10 @@ async def test_worker_exception_failed_to_send_message(
 
     assert not stopped_event.is_set()
 
-    assert await mock_aioredis.llen(f"{REDIS_MAIL_QUEUE}::failed") == 4
+    assert (
+        await mock_aioredis.llen(f"{settings.redis_mail_queue}::failed") == 4
+    )
     failed_msg = unpack(
-        await mock_aioredis.rpop(f"{REDIS_MAIL_QUEUE}::failed")
+        await mock_aioredis.rpop(f"{settings.redis_mail_queue}::failed")
     )["mail"]
     assert failed_msg["parameters"]["secret_data"] == "XXXXXX"

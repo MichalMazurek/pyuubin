@@ -1,9 +1,9 @@
 import pytest
 
-import pyuubin.settings as settings
 from pyuubin.db import _t_id, unpack
 from pyuubin.health import update_health
 from pyuubin.models import Mail
+from pyuubin.settings import settings
 
 
 def test_send(test_cli, mock_aioredis):
@@ -20,7 +20,7 @@ def test_send(test_cli, mock_aioredis):
 
     assert response.status_code == 200, response.text
 
-    mail = Mail(**unpack(mock_aioredis.me[settings.REDIS_MAIL_QUEUE].pop()))
+    mail = Mail(**unpack(mock_aioredis.me[settings.redis_mail_queue].pop()))
     assert mail.to[0] == "test@example.com"
 
 
@@ -28,7 +28,7 @@ def test_health(test_cli):
 
     update_health("test.smth", "test")
 
-    response = test_cli.get("/health")
+    response = test_cli.get("/api/v1/health")
     assert response.status_code == 200
     status = response.json()
 

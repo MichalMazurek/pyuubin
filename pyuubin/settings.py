@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     smtp_host: str = "localhost"
     smtp_port: int = 5025
     smtp_user: str = ""
-    smtp_password: SecretStr = SecretStr("")
+    smtp_password: SecretStr = ""
     smtp_tls: bool = False
 
     mail_from: str = "account@example.ltd"
