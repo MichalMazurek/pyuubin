@@ -4,7 +4,7 @@ line-length=79
 
 [tool.poetry]
 name = "pyuubin"
-version = "19.1"
+version = "0.0.0"
 description = "Mailing services with HTTP Api"
 authors = ["Michal Mazurek <michal@mazurek-inc.co.uk>"]
 license = "Apache-2.0"

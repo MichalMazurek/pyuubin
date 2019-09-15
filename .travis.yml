@@ -9,9 +9,10 @@ script:
   - poetry run pylama pyuubin
   - poetry run pytest --cov pyuubin --cov tests tests/
 before_deploy:
-  - poetry build
   - poetry version $TRAVIS_TAG
+  - poetry build
 deploy:
+  skip_cleanup: true
   provider: script
   script: poetry publish -u michalmazurek -p $PYPI_PASSWORD
   condition: "$TRAVIS_PYTHON_VERSION == 3.7"
