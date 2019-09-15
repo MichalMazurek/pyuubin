@@ -93,7 +93,7 @@ htpasswd -Bc test_htpasswd app1
 
 ## API Specification
 
-You can find API docs here: [redoc pages](./docs/index.html)
+You can find API docs here: [redoc pages](https://pyuubin.io/docs/index.html)
 
 ## TODO
 

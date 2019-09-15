@@ -10,7 +10,14 @@ authors = ["Michal Mazurek <mazurek.michal@gmail.com>"]
 license = "Apache-2.0"
 repository = "https://github.com/MichalMazurek/pyuubin.git"
 homepage = "https://pyuubin.io"
-
+documentation = "https://pyuubin.io"
+readme = "./README.md"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: Free To Use But Restricted",
+    "Programming Language :: Python :: 3.7",
+    "Topic :: Communications :: Email"
+]
 packages = [
     {include = "pyuubin"}
 ]
