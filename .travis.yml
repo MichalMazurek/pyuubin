@@ -10,11 +10,10 @@ script:
   - poetry run pytest --cov pyuubin --cov tests tests/
 before_deploy:
   - poetry build
+  - poetry version $TRAVIS_TAG
 deploy:
   provider: script
-  script:
-    - poetry version $TRAVIS_TAG
-    - poetry publish -u michalmazurek -p $PYPI_PASSWORD
+  script: poetry publish -u michalmazurek -p $PYPI_PASSWORD
   condition: "$TRAVIS_PYTHON_VERSION == 3.7"
   on:
     tags: true
