@@ -8,3 +8,11 @@ install:
 script:
   - poetry run pylama pyuubin
   - poetry run pytest --cov pyuubin --cov tests tests/
+
+deploy:
+  provider: script
+  script:
+    - poetry vesion $TRAVIS_TAG
+    - poetry publish --build -u michalmazurek -p $PYPI_PASSWORD
+  on:
+    tags: true
