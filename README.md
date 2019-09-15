@@ -1,5 +1,7 @@
 # 💨💨💨 Pyuubin – Mailing System 💨💨💨
 
+[![Build Status](https://travis-ci.org/MichalMazurek/pyuubin.svg?branch=master)](https://travis-ci.org/MichalMazurek/pyuubin)
+
 Asynchronous mailing system over HTTP API.
 
 郵便 (Yūbin) - Postal Service
@@ -88,6 +90,10 @@ htpasswd -Bc test_htpasswd app1
 ```
 
 > Note: Only blowfish encrypted hashes are supported
+
+## API Specification
+
+You can find API docs here: [redoc pages](./docs/index.html)
 
 ## TODO
 

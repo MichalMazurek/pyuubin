@@ -6,8 +6,9 @@ line-length=79
 name = "pyuubin"
 version = "0.0.0"
 description = "Mailing services with HTTP Api"
-authors = ["Michal Mazurek <michal@mazurek-inc.co.uk>"]
+authors = ["Michal Mazurek <mazurek.michal@gmail.com>"]
 license = "Apache-2.0"
+repository = "https://github.com/MichalMazurek/pyuubin.git"
 packages = [
     {include = "pyuubin"}
 ]
