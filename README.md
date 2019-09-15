@@ -98,6 +98,7 @@ You can find API docs here: [redoc pages](./docs/index.html)
 ## TODO
 
 - Documentation
+- Client library
 - Handling of rejected/failed mails
 - Bounces management
 - Rate limitting for source / global
