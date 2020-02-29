@@ -1,7 +1,6 @@
 FROM python:3.7
 
 ARG version
-ARG repository
 
 ENV PYUUBIN_REDIS_MAIL_QUEUE=pyuubin::mail_queue
 ENV PYUUBIN_REDIS_URL=redis://redis:6379
@@ -16,12 +15,8 @@ ENV PYUUBIN_MAIL_RETURN=test@gmail.com
 ENV PYUUBIN_MAIL_CONNECTOR=pyuubin.connectors.smtp
 ENV PYUUBIN_AUTH_HTPASSWD_FILE=
 
-ENV YUUBIN_VERSION=$version
 
-ADD ./install.sh /install.sh
-
-RUN bash install.sh $repository
-RUN rm /install.sh
+RUN pip install pyuubin==${version}
 
 WORKDIR  /srv
 
