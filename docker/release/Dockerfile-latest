@@ -15,9 +15,6 @@ ENV PYUUBIN_MAIL_RETURN=test@gmail.com
 ENV PYUUBIN_MAIL_CONNECTOR=pyuubin.connectors.smtp
 ENV PYUUBIN_AUTH_HTPASSWD_FILE=
 
-
 RUN pip install pyuubin
 
-
 CMD [ "hypercorn", "pyuubin.api.app:app", "--bind", "0.0.0.0:8000", "--access-log", "-", "--error-log", "-" ]
-
